@@ -1,0 +1,65 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+screenGui.Name = "CamlockUI"
+screenGui.ResetOnSpawn = false
+
+local button = Instance.new("TextButton", screenGui)
+button.Size = UDim2.new(0, 120, 0, 40)
+button.Position = UDim2.new(0, 20, 0, 100)
+button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Text = "CamlockSybuu: OFF"
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 18
+button.Active = true
+button.Draggable = true -- Makes the button draggable
+
+-- Camlock State
+local camlocked = false
+local target = nil
+
+-- Find nearest player
+local function getNearestPlayer()
+    local shortestDistance = math.huge
+    local nearestPlayer = nil
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local pos = player.Character.HumanoidRootPart.Position
+            local distance = (Camera.CFrame.Position - pos).Magnitude
+
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestPlayer = player
+            end
+        end
+    end
+
+    return nearestPlayer
+end
+
+-- Button toggle
+button.MouseButton1Click:Connect(function()
+    camlocked = not camlocked
+    if camlocked then
+        target = getNearestPlayer()
+        button.Text = "CamlockSybau: ON"
+        button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    else
+        target = nil
+        button.Text = "Camlock: OFF"
+        button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    end
+end)
+
+-- Camera lock loop
+RunService.RenderStepped:Connect(function()
+    if camlocked and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.HumanoidRootPart.Position)
+    end
+end)
